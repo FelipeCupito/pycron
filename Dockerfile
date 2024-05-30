@@ -14,4 +14,6 @@ COPY setup.py ./setup.py
 
 RUN pip3 install -r requirements.txt
 
-ENTRYPOINT ["python3", "-m", "pycron.scheduler", "--config", "/app/config.yaml"]
+ENV CONFIG_PATH="/app/config.yaml"
+
+ENTRYPOINT ["python3", "-m", "pycron.scheduler", "--config", "$CONFIG_PATH"]

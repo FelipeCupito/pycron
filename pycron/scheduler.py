@@ -62,7 +62,7 @@ class Scheduler:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Pycron Scheduler')
-    parser.add_argument('--config', type=str, required=True, help='Path to the configuration file')
+    parser.add_argument('--config', type=str, default=os.getenv('CONFIG_PATH', '/app/config.yaml'), help='Path to the configuration file')
     args = parser.parse_args()
 
     config_path = os.path.abspath(args.config)
