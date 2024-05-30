@@ -24,8 +24,8 @@ Pycron es una herramienta que permite ejecutar comandos de manera periódica uti
 
 ### Pros de Pycron
 - **Fácil Integración en Docker**: No requiere configuraciones adicionales para correr en contenedores Docker.
-- **Configuración Sencilla**: Utiliza archivos de configuración en formato YAML, JSON o TOML.
-- **Manejo de Errores**: Permite manejar errores y reintentar tareas fallidas.
+- **Configuración Sencilla**: Utiliza archivos de configuración en formato YAML.
+- **Manejo de Errores**: Permite manejar errores y reintentar tareas fallidas. (Próximamente)
 - **Flexibilidad**: Al estar basado en Python, es fácil de extender y modificar según necesidades específicas.
 
 ### Contras de Pycron
@@ -58,9 +58,9 @@ El archivo de configuración define las tareas a ejecutar y sus intervalos. Es u
 
 ```yaml
 tasks:
-  - command: "/usr/local/bin/k6 run /scripts/web_workflow_test.js"
+  - command: "echo 'Hello, World! per minute'"
     interval: "60s"
-  - command: "echo 'Hello, World!'"
+  - command: "echo 'Hello, World! per 5 minutes'"
     interval: "5m"
 ```
 
@@ -127,8 +127,10 @@ Para extender el Dockerfile y agregar tu propia configuración o scripts, sigue 
    RUN apt-get update && apt-get install -y <tu-paquete>
 
    # Copia el archivo de configuración y los scripts necesarios
-   COPY my_config.yaml /app/config.yaml
    COPY my_script.sh /scripts/my_script.sh
+
+   # Copia el archivo de configuración
+   COPY my_config.yaml /app/config.yaml
    ```
 
 2. Archivo de configuración (`my_config.yaml`):
@@ -143,10 +145,6 @@ Para extender el Dockerfile y agregar tu propia configuración o scripts, sigue 
    docker build -t my-pycron .
    docker run my-pycron
    ```
-
-## Contribuir
-
-Si quieres contribuir, por favor abre un issue o un pull request en GitHub.
 
 ## Licencia
 
