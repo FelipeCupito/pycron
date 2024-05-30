@@ -126,10 +126,10 @@ Para extender el Dockerfile y agregar tu propia configuración o scripts, sigue 
    # Instala paquetes adicionales si es necesario
    RUN apt-get update && apt-get install -y <tu-paquete>
 
-   # Copia el archivo de configuración y los scripts necesarios
+   # Copiar los scripts necesarios
    COPY my_script.sh /scripts/my_script.sh
 
-   # Copia el archivo de configuración
+   # Copiar el archivo de configuración
    COPY my_config.yaml /app/config.yaml
    ```
 
