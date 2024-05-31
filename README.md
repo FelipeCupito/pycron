@@ -11,9 +11,7 @@ Pycron es una herramienta simple basada en Python para ejecutar tareas periódic
   - [Desde la Terminal](#desde-la-terminal)
   - [Con Docker](#con-docker)
   - [Con Docker Compose](#con-docker-compose)
-  - [Extensión del Dockerfile](#extensión-del-dockerfile)
-- [Archivo de Configuración](#archivo-de-configuración)
-- [Contribuir](#contribuir)
+- [Extensión del Dockerfile](#extensión-del-dockerfile)
 - [Licencia](#licencia)
 
 ## Introducción
@@ -52,9 +50,9 @@ Para instalar Pycron desde GitHub, sigue estos pasos:
 
 ### Archivo de Configuración
 
-El archivo de configuración define las tareas a ejecutar y sus intervalos. Es un archivo en formato YAML, JSON o TOML que describe los comandos que Pycron debe ejecutar y con qué frecuencia.
+El archivo de configuración define las tareas a ejecutar y sus intervalos. Es un archivo en formato YAML que describe los comandos que Pycron debe ejecutar y con qué frecuencia.
 
-#### Ejemplo de Archivo de Configuración (YAML)
+#### Ejemplo de Archivo de Configuración
 
 ```yaml
 tasks:
@@ -115,36 +113,81 @@ Ejecuta el siguiente comando para iniciar el servicio:
 docker-compose up
 ```
 
-### Extensión del Dockerfile
+## Extensión del Dockerfile
 
-Para extender el Dockerfile y agregar tu propia configuración o scripts, sigue estos pasos:
+La extensión del Dockerfile te permite agregar tus propios scripts y configuraciones adicionales. Esto es especialmente útil para personalizar y ampliar las funcionalidades de Pycron según tus necesidades.
 
-1. Crea un `Dockerfile` personalizado:
+### Pasos para Extender el Dockerfile
+
+1. **Construye la imagen base desde el Dockerfile en la carpeta `lib/pycron`**:
+   ```sh
+   cd lib/pycron
+   docker build -t pycron-image .
+   ```
+
+2. **Crea un `Dockerfile` personalizado que use la imagen base**:
    ```Dockerfile
-   FROM pycron
+   FROM pycron-image
 
-   # Instala paquetes adicionales si es necesario
+   # Agrega cualquier paquete adicional que necesites
    RUN apt-get update && apt-get install -y <tu-paquete>
 
-   # Copiar los scripts necesarios
+   # Copia tus scripts necesarios
    COPY my_script.sh /scripts/my_script.sh
 
-   # Copiar el archivo de configuración
+   # Copia el archivo de configuración
    COPY my_config.yaml /app/config.yaml
    ```
 
-2. Archivo de configuración (`my_config.yaml`):
+   - **FROM pycron-image**: Utiliza la imagen base previamente construida.
+   - **RUN apt-get update && apt-get install -y <tu-paquete>**: Instala paquetes adicionales necesarios.
+   - **COPY my_script.sh /scripts/my_script.sh**: Copia tus scripts personalizados al contenedor.
+   - **COPY my_config.yaml /app/config.yaml**: Copia tu archivo de configuración personalizado al contenedor.
+
+3. **Ejemplo de Archivo de Configuración (`my_config.yaml`)**:
    ```yaml
    tasks:
      - command: "/bin/bash /scripts/my_script.sh"
        interval: "60s"
    ```
 
-3. Construye y ejecuta la imagen:
-   ```sh
-   docker build -t my-pycron .
-   docker run my-pycron
-   ```
+   Este archivo define las tareas que se ejecutarán periódicamente.
+
+### Uso con Docker Compose
+
+Para ejecutar tu imagen personalizada utilizando Docker Compose, crea un archivo `docker-compose.yml` que primero construya la imagen base y luego use esa imagen en el servicio final:
+
+```yaml
+version: '3.8'
+
+services:
+  base:
+    build: ./lib/pycron
+    image: pycron-image
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - base
+    volumes:
+      - ./my_config.yaml:/app/config.yaml
+      - ./my_script.sh:/scripts/my_script.sh
+```
+
+- **base**: Construye la imagen base desde el Dockerfile en `./lib/pycron`.
+- **app**: Construye la imagen personalizada usando la imagen base y monta los archivos necesarios.
+
+Ejecuta el siguiente comando para iniciar el servicio:
+
+```sh
+docker-compose up --build
+```
+
+## Contribuir
+
+Si deseas contribuir a este proyecto, por favor realiza un fork del repositorio, crea una rama con tus cambios y envía un pull request.
 
 ## Licencia
 
