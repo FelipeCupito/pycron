@@ -161,33 +161,27 @@ Para ejecutar tu imagen personalizada utilizando Docker Compose, crea un archivo
 version: '3.8'
 
 services:
-  base:
-    build: ./lib/pycron
+  pycron-base:
+    build: ./path/to/pycron
     image: pycron-image
+    container_name: pycron-base
+    command: ["exit"]
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  my-app:
+    build: .
+    container_name: my-app
     depends_on:
-      - base
-    volumes:
-      - ./my_config.yaml:/app/config.yaml
-      - ./my_script.sh:/scripts/my_script.sh
+      - pycron-base
 ```
-
-- **base**: Construye la imagen base desde el Dockerfile en `./lib/pycron`.
-- **app**: Construye la imagen personalizada usando la imagen base y monta los archivos necesarios.
+En este archivo `docker-compose.yml`:
+- **pycron-base**: Construye la imagen base desde el Dockerfile en `./path/to/pycron` y define un comando `["exit"]` para que el contenedor se salga inmediatamente después de iniciarse, ya que el docker-compose up lo buildeará y ejecutará.
+- **my-app**: Construye la imagen personalizada usando la imagen base y monta los archivos necesarios. Este servicio depende del contenedor `pycron-base`, que se construye pero no se ejecuta.
 
 Ejecuta el siguiente comando para iniciar el servicio:
 
 ```sh
 docker-compose up --build
 ```
-
-## Contribuir
-
-Si deseas contribuir a este proyecto, por favor realiza un fork del repositorio, crea una rama con tus cambios y envía un pull request.
 
 ## Licencia
 
