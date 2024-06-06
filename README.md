@@ -35,15 +35,9 @@ Pycron es una herramienta que permite ejecutar comandos de manera periódica uti
 
 Para instalar Pycron desde GitHub, sigue estos pasos:
 
-1. Clona el repositorio:
+ Clona el repositorio:
    ```sh
    git clone https://github.com/FelipeCupito/pycron.git
-   cd pycron
-   ```
-
-2. Instala las dependencias:
-   ```sh
-   pip install -r requirements.txt
    ```
 
 ## Uso
@@ -73,11 +67,18 @@ Asegúrate de tener un archivo de configuración antes de continuar con los sigu
 
 Para ejecutar Pycron desde la terminal:
 
-1. Asegúrate de tener un archivo de configuración (`config.yaml`).
-2. Ejecuta el siguiente comando:
-   ```sh
-   python3 -m pycron.scheduler --config /ruta/a/tu/config.yaml
-   ```
+1. Instala las dependencias:
+    ```sh
+    cd pycron
+    pip install -r requirements.txt
+    ```
+
+2. Asegúrate de tener un archivo de configuración (`config.yaml`).
+
+3. Ejecuta el siguiente comando:
+    ```sh
+    python3 -m pycron.scheduler --config /ruta/a/tu/config.yaml
+    ```
 
 ### Con Docker
 
@@ -112,20 +113,25 @@ Ejecuta el siguiente comando para iniciar el servicio:
 ```sh
 docker-compose up
 ```
-
 ## Extensión del Dockerfile
 
-La extensión del Dockerfile te permite agregar tus propios scripts y configuraciones adicionales. Esto es especialmente útil para personalizar y ampliar las funcionalidades de Pycron según tus necesidades.
+Para personalizar Pycron y añadir scripts y configuraciones adicionales, puedes extender el Dockerfile base. Esto es útil para adaptar Pycron a tus necesidades específicas. En este proceso, es esencial construir una imagen base de Pycron para poder crear una imagen personalizada a partir de ella.
 
 ### Pasos para Extender el Dockerfile
 
-1. **Construye la imagen base desde el Dockerfile en la carpeta `lib/pycron`**:
+1. **Construcción de la Imagen Base de Pycron**
+
+   Primero, construye la imagen base de Pycron desde el Dockerfile en la carpeta `lib/pycron`. Esto garantiza que cualquier personalización adicional se base en una imagen consistente de Pycron.
+
    ```sh
-   cd lib/pycron
+   cd path/to/pycron
    docker build -t pycron-image .
    ```
 
-2. **Crea un `Dockerfile` personalizado que use la imagen base**:
+2. **Creación de un Dockerfile Personalizado**
+
+   Luego, crea un Dockerfile personalizado que utilice la imagen base de Pycron y añada cualquier paquete, script o archivo de configuración adicional que necesites.
+
    ```Dockerfile
    FROM pycron-image
 
@@ -144,44 +150,66 @@ La extensión del Dockerfile te permite agregar tus propios scripts y configurac
    - **COPY my_script.sh /scripts/my_script.sh**: Copia tus scripts personalizados al contenedor.
    - **COPY my_config.yaml /app/config.yaml**: Copia tu archivo de configuración personalizado al contenedor.
 
-3. **Ejemplo de Archivo de Configuración (`my_config.yaml`)**:
+3. **Ejemplo de Archivo de Configuración (`my_config.yaml`)**
+
+   Define las tareas que se ejecutarán periódicamente en el archivo de configuración YAML.
+
    ```yaml
    tasks:
      - command: "/bin/bash /scripts/my_script.sh"
        interval: "60s"
    ```
+4. **Construcción de la Imagen Personalizada**
+    ```sh
+    docker build -t pycron-custom .
+    ```
+5. **Ejecución de la Imagen Personalizada**
 
-   Este archivo define las tareas que se ejecutarán periódicamente.
+  - #### Docker Compose
+      Crea un archivo `docker-compose.yml`:
+      ```yaml
+      version: '3.8'
 
-### Uso con Docker Compose
+      services:
+        pycron:
+          build: .
+          image: pycron-custom
+          volumes:
+            - ./config.yaml:/app/config.yaml
+            - ./scripts:/scripts
+      ```
+      Corren el Docker Compose:
+      ```sh
+      docker run pycron-custom
+      ```
+  - #### Docker Run
+    ```sh 
+    docker run -v  pycron-custom
+    ```
 
-Para ejecutar tu imagen personalizada utilizando Docker Compose, crea un archivo `docker-compose.yml` que primero construya la imagen base y luego use esa imagen en el servicio final:
 
-```yaml
-version: '3.8'
+### Uso de `run.sh` para Ejecutar Pycron
 
-services:
-  pycron-base:
-    build: ./path/to/pycron
-    image: pycron-image
-    container_name: pycron-base
-    command: ["exit"]
+Para facilitar la construcción y ejecución de los contenedores, utiliza el siguiente script `run.sh`. Este script verifica si la imagen base de Pycron está construida y la construye si es necesario, luego ejecuta Docker Compose o el Docker run.
 
-  my-app:
-    build: .
-    container_name: my-app
-    depends_on:
-      - pycron-base
+```bash
+#!/bin/bash
+
+PYCRON_IMAGE="pycron-image"
+
+if [[ "$(docker images -q $PYCRON_IMAGE 2> /dev/null)" == "" ]]; then
+    echo "La imagen de Pycron no está construida. Construyendo..."
+    docker build -t $PYCRON_IMAGE path/to/pycron-Dockerfile
+fi
+
+docker-compose up
+# docker run pycron-custom
 ```
-En este archivo `docker-compose.yml`:
-- **pycron-base**: Construye la imagen base desde el Dockerfile en `./path/to/pycron` y define un comando `["exit"]` para que el contenedor se salga inmediatamente después de iniciarse, ya que el docker-compose up lo buildeará y ejecutará.
-- **my-app**: Construye la imagen personalizada usando la imagen base y monta los archivos necesarios. Este servicio depende del contenedor `pycron-base`, que se construye pero no se ejecuta.
 
-Ejecuta el siguiente comando para iniciar el servicio:
+Para usar este script realiza los siguientes pasos:
+1. Escriba el path de la carpeta donde se encuentra el Dockerfile de Pycron en la línea 7.
+2. Comenete o descomente la línea 10/11 según si desea ejecutar con Docker Compose o Docker run.
 
-```sh
-docker-compose up --build
-```
 
 ## Licencia
 
