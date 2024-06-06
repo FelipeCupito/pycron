@@ -22,7 +22,4 @@ ENV CONFIG_PATH="/app/config.yaml"
 ENV VIRTUAL_ENV=/app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["python3 -m pycron.scheduler --config /app/config.yaml"]
